@@ -162,7 +162,7 @@ alias ta='tmux attach -t'
 alias tls='tmux ls'
 alias tn='tmux new -s'
 alias tk='tmux kill-session -t'
-
+alias tm='tmux'
 
 
 #머신별 로컬 설정
