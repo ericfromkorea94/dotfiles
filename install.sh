@@ -12,6 +12,10 @@ python_versions=(3.10 3.12 3.13)
 # 기본 Python으로 지정할 버전. python_versions에 포함된 버전이어야 한다.
 python_global=3.12
 
+# 설치할 nvm 버전(릴리스 태그)과, nvm으로 설치할 Node 메이저 버전.
+nvm_version=v0.41.0
+node_version=24
+
 install_packages() {
     # packages.txt에 적힌 패키지를 설치한다. 목록이 비어 있으면 xargs -r이 apt-get을 실행하지 않는다.
     # Python 빌드에 필요한 라이브러리(libssl-dev 등)도 packages.txt에 포함한다.
@@ -50,6 +54,20 @@ install_packages() {
 
     # python_global에 해당하는 설치된 버전 중 최신 패치 버전을 기본 Python으로 지정한다.
     pyenv global "$(pyenv latest "$python_global")"
+
+    # nvm은 apt 패키지가 없으므로 공식 설치 스크립트로 ~/.nvm에 설치한다. 이미 설치되어 있으면 건너뛴다.
+    # PROFILE=/dev/null은 설치 스크립트가 셸 설정 파일을 수정하지 않게 한다. nvm 설정은 .bashrc에 이미 있다.
+    export NVM_DIR="$HOME/.nvm"
+    if [[ ! -d $NVM_DIR ]]; then
+        curl -fsSL "https://raw.githubusercontent.com/nvm-sh/nvm/$nvm_version/install.sh" | PROFILE=/dev/null bash
+    fi
+
+    # nvm.sh는 정의되지 않은 변수를 사용하므로, nvm을 사용하는 동안 set -u를 해제한다.
+    # nvm install은 이미 설치된 버전이면 다시 설치하지 않는다. 처음 설치한 버전은 기본 버전(default)으로 지정된다.
+    set +u
+    . "$NVM_DIR/nvm.sh"
+    nvm install "$node_version"
+    set -u
 }
 
 install_packages
