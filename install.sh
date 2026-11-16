@@ -87,6 +87,11 @@ install_packages() {
     for channel in main r; do
         "$conda_dir/bin/conda" tos accept --override-channels --channel "https://repo.anaconda.com/pkgs/$channel"
     done
+
+    # 새 셸에서 base 환경을 자동으로 활성화하지 않게 한다. 프롬프트에 (base)가 표시되지 않는다.
+    # 설정은 ~/.condarc에 저장된다. conda 25.3부터 설정 이름이 auto_activate이고, 그 이전 버전은 auto_activate_base다.
+    "$conda_dir/bin/conda" config --set auto_activate false ||
+        "$conda_dir/bin/conda" config --set auto_activate_base false
 }
 
 install_packages
