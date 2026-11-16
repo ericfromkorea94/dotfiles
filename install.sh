@@ -35,7 +35,7 @@ install_packages() {
     if [[ ! -x ~/.local/bin/codex ]]; then
         curl -fsSL https://chatgpt.com/codex/install.sh | sh
     fi
-
+   
     # pyenv는 apt 패키지가 없으므로 공식 설치 스크립트로 ~/.pyenv에 설치한다.
     # 설치 스크립트는 ~/.pyenv가 이미 있으면 실패하므로, 디렉터리가 없을 때만 실행한다.
     export PYENV_ROOT="$HOME/.pyenv"
@@ -68,6 +68,25 @@ install_packages() {
     . "$NVM_DIR/nvm.sh"
     nvm install "$node_version"
     set -u
+
+    # Miniconda를 공식 설치 스크립트로 ~/miniconda3에 설치한다. 이미 설치되어 있으면 건너뛴다.
+    # -b(batch)는 질문 없이 설치하며, 라이선스에 동의한 것으로 처리한다. -p는 설치 경로다.
+    # -b는 셸 설정 파일을 수정하지 않는다. conda 초기화 설정은 .bashrc에 이미 있다.
+    local conda_dir="$HOME/miniconda3"
+    if [[ ! -x $conda_dir/bin/conda ]]; then
+        local conda_installer
+        conda_installer=$(mktemp --suffix=.sh)
+        curl -fsSL "https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-$(uname -m).sh" -o "$conda_installer"
+        bash "$conda_installer" -b -p "$conda_dir"
+        rm -f "$conda_installer"
+    fi
+
+    # 기본 채널(main, r)의 이용 약관(ToS)에 동의한다. 동의하지 않으면 conda install, conda create가 실패한다.
+    # 설치 스크립트의 라이선스 동의(-b)와는 별개 절차다. 이미 동의한 상태에서 다시 실행해도 문제없다.
+    local channel
+    for channel in main r; do
+        "$conda_dir/bin/conda" tos accept --override-channels --channel "https://repo.anaconda.com/pkgs/$channel"
+    done
 }
 
 install_packages
